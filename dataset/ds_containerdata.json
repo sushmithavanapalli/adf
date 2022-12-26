@@ -1,0 +1,12 @@
+{
+	"name": "ds_containerdata",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sqldestination",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	}
+}
