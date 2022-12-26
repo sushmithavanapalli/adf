@@ -1,0 +1,17 @@
+{
+	"name": "ds_individualdestination",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sqldestination",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TableName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	}
+}
