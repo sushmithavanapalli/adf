@@ -50,7 +50,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('Retrieve data from Controlled file').output",
+						"value": "@activity('Retrieve data from Controlled file').output.value",
 						"type": "Expression"
 					},
 					"activities": [
@@ -71,7 +71,7 @@
 									"referenceName": "ds_deletemastersource",
 									"type": "DatasetReference",
 									"parameters": {
-										"Foldername": {
+										"FolderName": {
 											"value": "@item().FolderName",
 											"type": "Expression"
 										}
