@@ -70,7 +70,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"FileName": {
-											"value": "@concat(substring(item().name, 0,lastIndexOf(item().name, '_')))",
+											"value": "@item().name",
 											"type": "Expression"
 										}
 									}
@@ -82,7 +82,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"TableName": {
-											"value": "@item().name",
+											"value": "@concat(substring(item().name, 0, indexOf(item().name, '_')))",
 											"type": "Expression"
 										}
 									}
