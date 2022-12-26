@@ -61,7 +61,26 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"enableLogging": true
+								"dataset": {
+									"referenceName": "ds_multiplecontainers",
+									"type": "DatasetReference",
+									"parameters": {
+										"FolderName": {
+											"value": "@item().FolderName",
+											"type": "Expression"
+										},
+										"Wildcard": {
+											"value": "@if(equals(item().FolderName, 'multiplefiles'), '*.jpg', '*.txt') ",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableLogging": true,
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
 							}
 						}
 					]
