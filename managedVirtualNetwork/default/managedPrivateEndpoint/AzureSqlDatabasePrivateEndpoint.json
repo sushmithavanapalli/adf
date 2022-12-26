@@ -1,0 +1,7 @@
+{
+	"name": "AzureSqlDatabasePrivateEndpoint",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/95cd2b52-5b17-466a-8e14-e34779562112/resourceGroups/daythreeadf/providers/Microsoft.Sql/servers/daythreeadfserver",
+		"groupId": "sqlServer"
+	}
+}
