@@ -68,17 +68,23 @@
 										"FolderName": {
 											"value": "@item().FolderName",
 											"type": "Expression"
-										},
-										"Wildcard": {
-											"value": "@if(equals(item().FolderName, 'multiplefiles'), '*.jpg', '*.txt') ",
-											"type": "Expression"
 										}
+									}
+								},
+								"logStorageSettings": {
+									"linkedServiceName": {
+										"referenceName": "ls_blobinput",
+										"type": "LinkedServiceReference"
 									}
 								},
 								"enableLogging": true,
 								"storeSettings": {
 									"type": "AzureBlobStorageReadSettings",
 									"recursive": true,
+									"wildcardFileName": {
+										"value": "@{item().Wildcard}",
+										"type": "Expression"
+									},
 									"enablePartitionDiscovery": false
 								}
 							}
