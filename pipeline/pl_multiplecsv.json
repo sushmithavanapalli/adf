@@ -70,7 +70,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"FileName": {
-											"value": "@item().name",
+											"value": "@concat(substring(item().name, 0, indexOf(item().name, '_')))",
 											"type": "Expression"
 										}
 									}
