@@ -1,0 +1,32 @@
+{
+	"name": "ds_multiplecontainers",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blobinput",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FolderName": {
+				"type": "string"
+			},
+			"Wildcard": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@if(equals(dataset().FolderName, 'multiplefiles'), 'jpg', 'txt')",
+					"type": "Expression"
+				},
+				"container": {
+					"value": "@dataset().FolderName",
+					"type": "Expression"
+				}
+			}
+		}
+	}
+}
