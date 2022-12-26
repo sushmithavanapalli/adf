@@ -82,7 +82,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"TableName": {
-											"value": "@concat(substring(item().name, 0, indexOf(item().name, '_')))",
+											"value": "@item().name",
 											"type": "Expression"
 										}
 									}
