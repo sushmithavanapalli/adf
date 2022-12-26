@@ -5,6 +5,14 @@
 			"referenceName": "ls_blobinput",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"Foldername": {
+				"type": "string"
+			},
+			"Wildcard": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
