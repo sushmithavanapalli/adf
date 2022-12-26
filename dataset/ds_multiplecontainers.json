@@ -19,7 +19,7 @@
 			"location": {
 				"type": "AzureBlobStorageLocation",
 				"fileName": {
-					"value": "@if(equals(dataset().FolderName, 'multiplefiles'), 'jpg', 'txt')",
+					"value": "@dataset().Wildcard",
 					"type": "Expression"
 				},
 				"container": {
