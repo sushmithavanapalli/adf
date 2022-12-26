@@ -1,0 +1,9 @@
+{
+	"name": "adf-daythree",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "646b2478-5446-4bae-adfc-1eedf2f97944",
+		"tenantId": "e0793d39-0939-496d-b129-198edd916feb"
+	}
+}
