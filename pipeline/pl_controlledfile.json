@@ -1,0 +1,7 @@
+{
+	"name": "pl_controlledfile",
+	"properties": {
+		"description": "delete files from multiple containers using controlled file",
+		"annotations": []
+	}
+}
