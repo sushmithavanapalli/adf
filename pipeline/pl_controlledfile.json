@@ -45,7 +45,13 @@
 						]
 					}
 				],
-				"userProperties": []
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Retrieve data from Controlled file').output",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"annotations": []
