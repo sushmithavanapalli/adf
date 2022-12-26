@@ -1,0 +1,7 @@
+{
+	"name": "pl_multiplecsv",
+	"properties": {
+		"description": "load multiple csv files to multiple tables",
+		"annotations": []
+	}
+}
