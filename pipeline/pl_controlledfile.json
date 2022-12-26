@@ -50,7 +50,44 @@
 					"items": {
 						"value": "@activity('Retrieve data from Controlled file').output",
 						"type": "Expression"
-					}
+					},
+					"activities": [
+						{
+							"name": "Delete1",
+							"type": "Delete",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_deletemastersource",
+									"type": "DatasetReference",
+									"parameters": {
+										"Foldername": {
+											"value": "@item().FolderName",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableLogging": true,
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"wildcardFileName": {
+										"value": "@{item().Wildcard}",
+										"type": "Expression"
+									},
+									"enablePartitionDiscovery": false
+								}
+							}
+						}
+					]
 				}
 			}
 		],
