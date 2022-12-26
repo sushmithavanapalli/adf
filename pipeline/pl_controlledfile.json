@@ -36,7 +36,8 @@
 				}
 			},
 			{
-				"name": "ForEach1",
+				"name": "ForEach",
+				"description": "iterate output from controlled file",
 				"type": "ForEach",
 				"dependsOn": [
 					{
