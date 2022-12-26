@@ -1,0 +1,23 @@
+{
+	"name": "ds_Deletemaster",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blobinput",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "DeleteMaster.txt",
+				"container": "logs"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
