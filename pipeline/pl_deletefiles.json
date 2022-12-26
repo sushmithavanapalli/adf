@@ -1,0 +1,7 @@
+{
+	"name": "pl_deletefiles",
+	"properties": {
+		"description": "delete files from multiple containers of storage account (blob)",
+		"annotations": []
+	}
+}
