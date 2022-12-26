@@ -31,7 +31,8 @@
 					"dataset": {
 						"referenceName": "ds_Deletemaster",
 						"type": "DatasetReference"
-					}
+					},
+					"firstRowOnly": false
 				}
 			},
 			{
