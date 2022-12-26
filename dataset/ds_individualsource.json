@@ -21,7 +21,7 @@
 				},
 				"container": "input"
 			},
-			"columnDelimiter": "\t",
+			"columnDelimiter": ",",
 			"escapeChar": "\\",
 			"firstRowAsHeader": true,
 			"quoteChar": "\""
