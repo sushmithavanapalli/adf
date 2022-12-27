@@ -15,6 +15,38 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'ls_sqldestination'"
 		},
+		"ls_privateendpoint_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_privateendpoint'"
+		},
+		"AzureSqlDatabasePrivateEndpoint_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/95cd2b52-5b17-466a-8e14-e34779562112/resourceGroups/daythreeadf/providers/Microsoft.Sql/servers/daythreeadfserver"
+		},
+		"AzureSqlDatabasePrivateEndpoint_properties_groupId": {
+			"type": "string",
+			"defaultValue": "sqlServer"
+		},
+		"AzureSqlDatabasePrivateEndpoint_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"daythreeadfserver.database.windows.net"
+			]
+		},
+		"AzureBlobStoragepep_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/95cd2b52-5b17-466a-8e14-e34779562112/resourceGroups/daythreeadf/providers/Microsoft.Storage/storageAccounts/daythreeadfsc"
+		},
+		"AzureBlobStoragepep_properties_groupId": {
+			"type": "string",
+			"defaultValue": "blob"
+		},
+		"AzureBlobStoragepep_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"daythreeadfsc.blob.core.windows.net"
+			]
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -47,6 +79,27 @@
 					},
 					"ls_sqldestination_connectionString": {
 						"value": "[parameters('ls_sqldestination_connectionString')]"
+					},
+					"ls_privateendpoint_connectionString": {
+						"value": "[parameters('ls_privateendpoint_connectionString')]"
+					},
+					"AzureSqlDatabasePrivateEndpoint_properties_privateLinkResourceId": {
+						"value": "[parameters('AzureSqlDatabasePrivateEndpoint_properties_privateLinkResourceId')]"
+					},
+					"AzureSqlDatabasePrivateEndpoint_properties_groupId": {
+						"value": "[parameters('AzureSqlDatabasePrivateEndpoint_properties_groupId')]"
+					},
+					"AzureSqlDatabasePrivateEndpoint_properties_fqdns": {
+						"value": "[parameters('AzureSqlDatabasePrivateEndpoint_properties_fqdns')]"
+					},
+					"AzureBlobStoragepep_properties_privateLinkResourceId": {
+						"value": "[parameters('AzureBlobStoragepep_properties_privateLinkResourceId')]"
+					},
+					"AzureBlobStoragepep_properties_groupId": {
+						"value": "[parameters('AzureBlobStoragepep_properties_groupId')]"
+					},
+					"AzureBlobStoragepep_properties_fqdns": {
+						"value": "[parameters('AzureBlobStoragepep_properties_fqdns')]"
 					}
 				}
 			},

@@ -10,6 +10,31 @@
 		},
 		"ls_sqldestination_connectionString": {
 			"value": ""
+		},
+		"ls_privateendpoint_connectionString": {
+			"value": ""
+		},
+		"AzureSqlDatabasePrivateEndpoint_properties_privateLinkResourceId": {
+			"value": "/subscriptions/95cd2b52-5b17-466a-8e14-e34779562112/resourceGroups/daythreeadf/providers/Microsoft.Sql/servers/daythreeadfserver"
+		},
+		"AzureSqlDatabasePrivateEndpoint_properties_groupId": {
+			"value": "sqlServer"
+		},
+		"AzureSqlDatabasePrivateEndpoint_properties_fqdns": {
+			"value": [
+				"daythreeadfserver.database.windows.net"
+			]
+		},
+		"AzureBlobStoragepep_properties_privateLinkResourceId": {
+			"value": "/subscriptions/95cd2b52-5b17-466a-8e14-e34779562112/resourceGroups/daythreeadf/providers/Microsoft.Storage/storageAccounts/daythreeadfsc"
+		},
+		"AzureBlobStoragepep_properties_groupId": {
+			"value": "blob"
+		},
+		"AzureBlobStoragepep_properties_fqdns": {
+			"value": [
+				"daythreeadfsc.blob.core.windows.net"
+			]
 		}
 	}
 }

@@ -14,12 +14,51 @@
 		"ls_sqldestination_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'ls_sqldestination'"
+		},
+		"ls_privateendpoint_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_privateendpoint'"
+		},
+		"AzureSqlDatabasePrivateEndpoint_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/95cd2b52-5b17-466a-8e14-e34779562112/resourceGroups/daythreeadf/providers/Microsoft.Sql/servers/daythreeadfserver"
+		},
+		"AzureSqlDatabasePrivateEndpoint_properties_groupId": {
+			"type": "string",
+			"defaultValue": "sqlServer"
+		},
+		"AzureSqlDatabasePrivateEndpoint_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"daythreeadfserver.database.windows.net"
+			]
+		},
+		"AzureBlobStoragepep_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/95cd2b52-5b17-466a-8e14-e34779562112/resourceGroups/daythreeadf/providers/Microsoft.Storage/storageAccounts/daythreeadfsc"
+		},
+		"AzureBlobStoragepep_properties_groupId": {
+			"type": "string",
+			"defaultValue": "blob"
+		},
+		"AzureBlobStoragepep_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"daythreeadfsc.blob.core.windows.net"
+			]
 		}
 	},
 	"variables": {
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/default')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks",
+			"apiVersion": "2018-06-01",
+			"properties": {},
+			"dependsOn": []
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/ls_blobinput')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
@@ -47,6 +86,32 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default/AzureSqlDatabasePrivateEndpoint')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"privateLinkResourceId": "[parameters('AzureSqlDatabasePrivateEndpoint_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('AzureSqlDatabasePrivateEndpoint_properties_groupId')]",
+				"fqdns": "[parameters('AzureSqlDatabasePrivateEndpoint_properties_fqdns')]"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default/AzureBlobStoragepep')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"privateLinkResourceId": "[parameters('AzureBlobStoragepep_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('AzureBlobStoragepep_properties_groupId')]",
+				"fqdns": "[parameters('AzureBlobStoragepep_properties_fqdns')]"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/ds_source')]",
@@ -270,6 +335,56 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_blobinput')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/privateintegrationruntime')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Managed",
+				"description": "Integration runtime of private endpoint for blob storage",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "East US",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 10,
+							"cleanup": false
+						},
+						"pipelineExternalComputeScaleProperties": {
+							"timeToLive": 60
+						}
+					}
+				},
+				"managedVirtualNetwork": {
+					"type": "ManagedVirtualNetworkReference",
+					"referenceName": "default"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_privateendpoint')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "private endpoint of blob storage account",
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_privateendpoint_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "privateintegrationruntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/privateintegrationruntime')]"
 			]
 		},
 		{
