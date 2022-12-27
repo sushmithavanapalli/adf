@@ -1,0 +1,25 @@
+{
+	"name": "Schedule-Trigger-1minute",
+	"properties": {
+		"description": "Schedule's a trigger for every one minute",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "pl_multiplecsv",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Minute",
+				"interval": 1,
+				"startTime": "2022-12-27T10:11:00Z",
+				"timeZone": "UTC"
+			}
+		}
+	}
+}
