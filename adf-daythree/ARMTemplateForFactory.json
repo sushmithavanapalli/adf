@@ -11,27 +11,13 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'ls_blobinput'"
 		},
-		"ls_sqldestination_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'ls_sqldestination'"
-		},
 		"ls_privateendpoint_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'ls_privateendpoint'"
 		},
-		"AzureSqlDatabasePrivateEndpoint_properties_privateLinkResourceId": {
-			"type": "string",
-			"defaultValue": "/subscriptions/95cd2b52-5b17-466a-8e14-e34779562112/resourceGroups/daythreeadf/providers/Microsoft.Sql/servers/daythreeadfserver"
-		},
-		"AzureSqlDatabasePrivateEndpoint_properties_groupId": {
-			"type": "string",
-			"defaultValue": "sqlServer"
-		},
-		"AzureSqlDatabasePrivateEndpoint_properties_fqdns": {
-			"type": "array",
-			"defaultValue": [
-				"daythreeadfserver.database.windows.net"
-			]
+		"ls_sqldestination_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_sqldestination'"
 		},
 		"AzureBlobStoragepep_properties_privateLinkResourceId": {
 			"type": "string",
@@ -41,11 +27,13 @@
 			"type": "string",
 			"defaultValue": "blob"
 		},
-		"AzureBlobStoragepep_properties_fqdns": {
-			"type": "array",
-			"defaultValue": [
-				"daythreeadfsc.blob.core.windows.net"
-			]
+		"AzureSqlDatabasePrivateEndpoint_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/95cd2b52-5b17-466a-8e14-e34779562112/resourceGroups/daythreeadf/providers/Microsoft.Sql/servers/daythreeadfserver"
+		},
+		"AzureSqlDatabasePrivateEndpoint_properties_groupId": {
+			"type": "string",
+			"defaultValue": "sqlServer"
 		}
 	},
 	"variables": {
@@ -53,338 +41,230 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/default/AzureSqlDatabasePrivateEndpoint')]",
-			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"name": "[concat(parameters('factoryName'), '/pl_controlledfile')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"privateLinkResourceId": "[parameters('AzureSqlDatabasePrivateEndpoint_properties_privateLinkResourceId')]",
-				"groupId": "[parameters('AzureSqlDatabasePrivateEndpoint_properties_groupId')]",
-				"fqdns": "[parameters('AzureSqlDatabasePrivateEndpoint_properties_fqdns')]"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/default/AzureBlobStoragepep')]",
-			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"privateLinkResourceId": "[parameters('AzureBlobStoragepep_properties_privateLinkResourceId')]",
-				"groupId": "[parameters('AzureBlobStoragepep_properties_groupId')]",
-				"fqdns": "[parameters('AzureBlobStoragepep_properties_fqdns')]"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_source')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_blobinput",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"container": "input"
+				"description": "delete files from multiple containers using controlled file",
+				"activities": [
+					{
+						"name": "ForEach",
+						"description": "iterate output from controlled file",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Delete1",
+									"type": "Delete",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "ds_deletemastersource",
+											"type": "DatasetReference",
+											"parameters": {
+												"FolderName": {
+													"value": "@item().FolderName",
+													"type": "Expression"
+												}
+											}
+										},
+										"logStorageSettings": {
+											"linkedServiceName": {
+												"referenceName": "ls_blobinput",
+												"type": "LinkedServiceReference"
+											},
+											"path": "logs"
+										},
+										"enableLogging": true,
+										"storeSettings": {
+											"type": "AzureBlobStorageReadSettings",
+											"recursive": true,
+											"wildcardFileName": {
+												"value": "@{item().Wildcard}",
+												"type": "Expression"
+											},
+											"enablePartitionDiscovery": false
+										}
+									}
+								}
+							]
+						}
 					},
-					"columnDelimiter": "\t",
-					"escapeChar": "\\",
-					"firstRowAsHeader": false,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_blobinput')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_individualdestination')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_sqldestination",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"TableName": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": {
-						"value": "@dataset().TableName",
-						"type": "Expression"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_sqldestination')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_individualsource')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_blobinput",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"FileName": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": {
-							"value": "@dataset().FileName",
-							"type": "Expression"
+					{
+						"name": "Lookup",
+						"description": "Retrieve data from deletemaster file in blob storage",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
 						},
-						"container": "input"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_blobinput')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_archive')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_blobinput",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"container": "archive"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_blobinput')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_multiplecontainers')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_blobinput",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"FolderName": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "Binary",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"container": {
-							"value": "@dataset().FolderName",
-							"type": "Expression"
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "ds_Deletemaster",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
 						}
 					}
-				}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_Deletemaster')]",
+				"[concat(variables('factoryId'), '/datasets/ds_deletemastersource')]",
 				"[concat(variables('factoryId'), '/linkedServices/ls_blobinput')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ds_containerdata')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
+			"name": "[concat(parameters('factoryName'), '/pl_deletefiles')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_sqldestination",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_sqldestination')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_deletemastersource')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_blobinput",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"FolderName": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "Binary",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"container": {
-							"value": "@dataset().FolderName",
-							"type": "Expression"
-						}
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_blobinput')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_Deletemaster')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_blobinput",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": "DeleteMaster.txt",
-						"container": "logs"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_blobinput')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/default')]",
-			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks",
-			"apiVersion": "2018-06-01",
-			"properties": {},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ls_blobinput')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "linked service of blob storage",
-				"annotations": [],
-				"type": "AzureBlobStorage",
-				"typeProperties": {
-					"connectionString": "[parameters('ls_blobinput_connectionString')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ls_sqldestination')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "linked service - Azure SQL Database",
-				"annotations": [],
-				"type": "AzureSqlDatabase",
-				"typeProperties": {
-					"connectionString": "[parameters('ls_sqldestination_connectionString')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ls_privateendpoint')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "private endpoint of blob storage account",
-				"annotations": [],
-				"type": "AzureBlobStorage",
-				"typeProperties": {
-					"connectionString": "[parameters('ls_privateendpoint_connectionString')]"
-				},
-				"connectVia": {
-					"referenceName": "privateintegrationruntime",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/privateintegrationruntime')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/privateintegrationruntime')]",
-			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "Managed",
-				"description": "Integration runtime of private endpoint for blob storage",
-				"typeProperties": {
-					"computeProperties": {
-						"location": "East US",
-						"dataFlowProperties": {
-							"computeType": "General",
-							"coreCount": 8,
-							"timeToLive": 10,
-							"cleanup": false
+				"description": "delete files from multiple containers of storage account (blob)",
+				"activities": [
+					{
+						"name": "Retrieve data from containerdata",
+						"description": "retrieve data from containerdata table",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
 						},
-						"pipelineExternalComputeScaleProperties": {
-							"timeToLive": 60
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "select foldername, wildcard from containerdata;",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_containerdata",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Retrieve data from containerdata",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Retrieve data from containerdata').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Delete1",
+									"type": "Delete",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "ds_multiplecontainers",
+											"type": "DatasetReference",
+											"parameters": {
+												"FolderName": {
+													"value": "@item().FolderName",
+													"type": "Expression"
+												}
+											}
+										},
+										"logStorageSettings": {
+											"linkedServiceName": {
+												"referenceName": "ls_blobinput",
+												"type": "LinkedServiceReference"
+											}
+										},
+										"enableLogging": true,
+										"storeSettings": {
+											"type": "AzureBlobStorageReadSettings",
+											"recursive": true,
+											"wildcardFileName": {
+												"value": "@{item().Wildcard}",
+												"type": "Expression"
+											},
+											"enablePartitionDiscovery": false
+										}
+									}
+								}
+							]
 						}
 					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
 				},
-				"managedVirtualNetwork": {
-					"type": "ManagedVirtualNetworkReference",
-					"referenceName": "default"
-				}
+				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+				"[concat(variables('factoryId'), '/datasets/ds_containerdata')]",
+				"[concat(variables('factoryId'), '/datasets/ds_multiplecontainers')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobinput')]"
 			]
 		},
 		{
@@ -629,8 +509,7 @@
 					"elapsedTimeMetric": {},
 					"cancelAfter": {}
 				},
-				"annotations": [],
-				"lastPublishTime": "2022-12-26T13:02:03Z"
+				"annotations": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_source')]",
@@ -641,232 +520,367 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/pl_deletefiles')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
+			"name": "[concat(parameters('factoryName'), '/ds_Deletemaster')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"description": "delete files from multiple containers of storage account (blob)",
-				"activities": [
-					{
-						"name": "Retrieve data from containerdata",
-						"description": "retrieve data from containerdata table",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderQuery": "select foldername, wildcard from containerdata;",
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"dataset": {
-								"referenceName": "ds_containerdata",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
-					},
-					{
-						"name": "ForEach1",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Retrieve data from containerdata",
-								"dependencyConditions": [
-									"Completed"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('Retrieve data from containerdata').output.value",
-								"type": "Expression"
-							},
-							"activities": [
-								{
-									"name": "Delete1",
-									"type": "Delete",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"dataset": {
-											"referenceName": "ds_multiplecontainers",
-											"type": "DatasetReference",
-											"parameters": {
-												"FolderName": {
-													"value": "@item().FolderName",
-													"type": "Expression"
-												}
-											}
-										},
-										"logStorageSettings": {
-											"linkedServiceName": {
-												"referenceName": "ls_blobinput",
-												"type": "LinkedServiceReference"
-											}
-										},
-										"enableLogging": true,
-										"storeSettings": {
-											"type": "AzureBlobStorageReadSettings",
-											"recursive": true,
-											"wildcardFileName": {
-												"value": "@{item().Wildcard}",
-												"type": "Expression"
-											},
-											"enablePartitionDiscovery": false
-										}
-									}
-								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {},
-					"cancelAfter": {}
+				"linkedServiceName": {
+					"referenceName": "ls_blobinput",
+					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
-				"lastPublishTime": "2022-12-26T15:16:54Z"
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "DeleteMaster.txt",
+						"container": "logs"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_containerdata')]",
-				"[concat(variables('factoryId'), '/datasets/ds_multiplecontainers')]",
 				"[concat(variables('factoryId'), '/linkedServices/ls_blobinput')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/pl_controlledfile')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
+			"name": "[concat(parameters('factoryName'), '/ds_archive')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"description": "delete files from multiple containers using controlled file",
-				"activities": [
-					{
-						"name": "ForEach",
-						"description": "iterate output from controlled file",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Lookup",
-								"dependencyConditions": [
-									"Completed"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('Lookup').output.value",
-								"type": "Expression"
-							},
-							"activities": [
-								{
-									"name": "Delete1",
-									"type": "Delete",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"dataset": {
-											"referenceName": "ds_deletemastersource",
-											"type": "DatasetReference",
-											"parameters": {
-												"FolderName": {
-													"value": "@item().FolderName",
-													"type": "Expression"
-												}
-											}
-										},
-										"logStorageSettings": {
-											"linkedServiceName": {
-												"referenceName": "ls_blobinput",
-												"type": "LinkedServiceReference"
-											},
-											"path": "logs"
-										},
-										"enableLogging": true,
-										"storeSettings": {
-											"type": "AzureBlobStorageReadSettings",
-											"recursive": true,
-											"wildcardFileName": {
-												"value": "@{item().Wildcard}",
-												"type": "Expression"
-											},
-											"enablePartitionDiscovery": false
-										}
-									}
-								}
-							]
-						}
-					},
-					{
-						"name": "Lookup",
-						"description": "Retrieve data from deletemaster file in blob storage",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"dataset": {
-								"referenceName": "ds_Deletemaster",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {},
-					"cancelAfter": {}
+				"linkedServiceName": {
+					"referenceName": "ls_blobinput",
+					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
-				"lastPublishTime": "2022-12-26T16:37:20Z"
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "archive"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"quoteChar": "\""
+				},
+				"schema": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_Deletemaster')]",
-				"[concat(variables('factoryId'), '/datasets/ds_deletemastersource')]",
 				"[concat(variables('factoryId'), '/linkedServices/ls_blobinput')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_containerdata')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_sqldestination",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_sqldestination')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_deletemastersource')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobinput",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FolderName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": {
+							"value": "@dataset().FolderName",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobinput')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_individualdestination')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_sqldestination",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TableName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": {
+						"value": "@dataset().TableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_sqldestination')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_individualsource')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobinput",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FileName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						},
+						"container": "input"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobinput')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_multiplecontainers')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobinput",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FolderName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": {
+							"value": "@dataset().FolderName",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobinput')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobinput",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "input"
+					},
+					"columnDelimiter": "\t",
+					"escapeChar": "\\",
+					"firstRowAsHeader": false,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobinput')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_blobinput')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "linked service of blob storage",
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_blobinput_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_privateendpoint')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "private endpoint of blob storage account",
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_privateendpoint_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "privateintegrationruntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/privateintegrationruntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_sqldestination')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "linked service - Azure SQL Database",
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_sqldestination_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Schedule-Trigger-1minute')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Schedule's a trigger for every one minute",
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "pl_multiplecsv",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2022-12-27T10:11:00Z",
+						"timeZone": "UTC"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_multiplecsv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/privateintegrationruntime')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Managed",
+				"description": "Integration runtime of private endpoint for blob storage",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "East US",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 10,
+							"cleanup": false
+						},
+						"pipelineExternalComputeScaleProperties": {
+							"timeToLive": 60
+						}
+					}
+				},
+				"managedVirtualNetwork": {
+					"type": "ManagedVirtualNetworkReference",
+					"referenceName": "default"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks",
+			"apiVersion": "2018-06-01",
+			"properties": {},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default/AzureBlobStoragepep')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"privateLinkResourceId": "[parameters('AzureBlobStoragepep_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('AzureBlobStoragepep_properties_groupId')]"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default/AzureSqlDatabasePrivateEndpoint')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"privateLinkResourceId": "[parameters('AzureSqlDatabasePrivateEndpoint_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('AzureSqlDatabasePrivateEndpoint_properties_groupId')]"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
 			]
 		}
 	]
