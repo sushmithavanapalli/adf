@@ -859,7 +859,7 @@
 			"properties": {
 				"description": "Schedule's a trigger for every one minute",
 				"annotations": [],
-				"runtimeState": "Stopped",
+				"runtimeState": "Started",
 				"pipelines": [
 					{
 						"pipelineReference": {
